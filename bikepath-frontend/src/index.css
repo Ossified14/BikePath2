@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --color-primary: #58cc02;
+  --color-primary-hover: #46a302;
+  --color-primary-shadow: #46a302;
+  --color-secondary: #1cb0f6;
+  --color-secondary-shadow: #1899d6;
+  --color-danger: #ff4b4b;
+  --color-danger-shadow: #d33131;
+  --color-white: #ffffff;
+  --color-gray-light: #e5e5e5;
+  --color-gray-dark: #777777;
+  --color-black: #4b4b4b;
+  
+  font-family: 'Nunito', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #ffffff;
+  color: var(--color-black);
+  display: block; /* Pastikan tidak flex agar tidak narik ke tengah */
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-weight: 800;
+  color: var(--color-black);
+}
+
+#root {
+  width: 100%;
+}
