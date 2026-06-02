@@ -66,15 +66,8 @@ const ProfilePage = () => {
                         <div className="card-duo" style={{ padding: '15px', marginBottom: '0', display: 'flex', alignItems: 'center', gap: '15px' }}>
                             <div style={{ background: '#e5f6ff', padding: '10px', borderRadius: '12px' }}><Bike color="#1cb0f6" /></div>
                             <div>
-                                <p style={{ fontSize: '0.8rem', color: '#aaa', fontWeight: '800' }}>TIPE SEPEDA</p>
+                                <p style={{ fontSize: '0.8rem', color: '#aaa', fontWeight: '800' }}>TIPE JALAN</p>
                                 <p style={{ fontWeight: '700' }}>{profile.bike_type || 'Belum diatur'}</p>
-                            </div>
-                        </div>
-                        <div className="card-duo" style={{ padding: '15px', marginBottom: '0', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <div style={{ background: '#f7f7f7', padding: '10px', borderRadius: '12px' }}><MapPin color="#777" /></div>
-                            <div>
-                                <p style={{ fontSize: '0.8rem', color: '#aaa', fontWeight: '800' }}>ALAMAT</p>
-                                <p style={{ fontWeight: '700' }}>{profile.address || 'Belum diatur'}</p>
                             </div>
                         </div>
                         
@@ -87,7 +80,7 @@ const ProfilePage = () => {
                     <form onSubmit={handleSave} style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <input className="input-duo" placeholder="USERNAME" value={profile.username} onChange={e => setProfile({...profile, username: e.target.value})} />
                         <input className="input-duo" placeholder="NAMA LENGKAP" value={profile.full_name} onChange={e => setProfile({...profile, full_name: e.target.value})} />
-                        <input className="input-duo" placeholder="TIPE SEPEDA" value={profile.bike_type} onChange={e => setProfile({...profile, bike_type: e.target.value})} />
+                        <input className="input-duo" placeholder="TIPE JALAN" value={profile.bike_type} onChange={e => setProfile({...profile, bike_type: e.target.value})} />
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <button type="submit" className="btn-duo btn-primary">SIMPAN</button>
                             <button type="button" className="btn-duo btn-outline" onClick={() => setIsEditing(false)}>BATAL</button>

@@ -152,7 +152,7 @@ const MapPage = () => {
                     <input type="text" placeholder="Cari tujuan..." />
                 </div>
                 <div className="input-group">
-                    <label><Settings2 size={16} /> Tipe Sepeda</label>
+                    <label><Settings2 size={16} /> Tipe Jalan</label>
                     <select 
                         value={activityDetails.type}
                         onChange={(e) => setActivityDetails({...activityDetails, type: e.target.value})}

@@ -19,9 +19,42 @@ const ActivityPage = () => {
         setExpandedId(expandedId === id ? null : id);
     };
 
+    const stats = activities.reduce((acc, act) => {
+        acc.totalDistance += parseFloat(act.distance || 0);
+        acc.totalDuration += parseFloat(act.duration || 0);
+        return acc;
+    }, { totalDistance: 0, totalDuration: 0 });
+
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '30px', fontWeight: 800 }}>Riwayat Aktivitas</h1>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <h1 style={{ textAlign: 'center', marginBottom: '30px', fontWeight: 800 }}>Dashboard Aktivitas</h1>
+
+            {/* Stats Overview */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginBottom: '40px' }}>
+                <div className="card-duo" style={{ textAlign: 'center', padding: '20px' }}>
+                    <div style={{ background: '#e5f6ff', width: '50px', height: '50px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 10px', justifyContent: 'center' }}>
+                        <Bike color="#1cb0f6" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#aaa' }}>TOTAL AKTIVITAS</p>
+                    <h2 style={{ margin: 0, fontWeight: 800 }}>{activities.length}</h2>
+                </div>
+                <div className="card-duo" style={{ textAlign: 'center', padding: '20px' }}>
+                    <div style={{ background: '#f7f7f7', width: '50px', height: '50px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 10px', justifyContent: 'center' }}>
+                        <MapIcon color="#777" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#aaa' }}>JARAK (KM)</p>
+                    <h2 style={{ margin: 0, fontWeight: 800 }}>{stats.totalDistance.toFixed(1)}</h2>
+                </div>
+                <div className="card-duo" style={{ textAlign: 'center', padding: '20px' }}>
+                    <div style={{ background: '#fff4e5', width: '50px', height: '50px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 10px', justifyContent: 'center' }}>
+                        <Clock color="#ff9600" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#aaa' }}>WAKTU (MENIT)</p>
+                    <h2 style={{ margin: 0, fontWeight: 800 }}>{Math.floor(stats.totalDuration)}</h2>
+                </div>
+            </div>
+
+            <h2 style={{ marginBottom: '20px', fontWeight: 800, fontSize: '1.4rem' }}>Riwayat Aktifitas Terbaru</h2>
             
             {activities.length > 0 ? (
                 activities.map((act) => (
