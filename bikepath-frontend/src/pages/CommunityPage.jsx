@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, UserMinus, MessageSquare, Info } from 'lucide-react';
+import { Users, UserPlus, MessageSquare, Info, Send, ShieldCheck, Hash } from 'lucide-react';
 import { getCommunities, joinCommunity, leaveCommunity, getCommunityMembers, getCommunityMessages, sendCommunityMessage } from '../services/bikepathService';
 
 const CommunityPage = () => {
@@ -15,8 +15,10 @@ const CommunityPage = () => {
     }, []);
 
     const loadGroups = async () => {
-        const res = await getCommunities();
-        setGroups(res.data.data);
+        try {
+            const res = await getCommunities();
+            if (res.data.status) setGroups(res.data.data);
+        } catch (err) { console.error(err); }
     };
 
     const openGroup = async (group) => {
@@ -26,170 +28,204 @@ const CommunityPage = () => {
     };
 
     const loadMessages = async (id) => {
-        const res = await getCommunityMessages(id);
-        setMessages(res.data.data);
+        try {
+            const res = await getCommunityMessages(id);
+            if (res.data.status) setMessages(res.data.data);
+        } catch (err) { console.error(err); }
     };
 
     const loadMembers = async (id) => {
-        const res = await getCommunityMembers(id);
-        setMembers(res.data.data);
+        try {
+            const res = await getCommunityMembers(id);
+            if (res.data.status) setMembers(res.data.data);
+        } catch (err) { console.error(err); }
     };
 
     const handleJoinLeave = async (e, group) => {
         e.stopPropagation();
-        if (group.is_member > 0) {
-            await leaveCommunity(group.id);
-        } else {
-            await joinCommunity(group.id);
-        }
-        loadGroups();
+        try {
+            if (group.is_member > 0) {
+                await leaveCommunity(group.id);
+            } else {
+                await joinCommunity(group.id);
+            }
+            loadGroups();
+            // Refresh active group data if it's the one we just joined/left
+            if (activeGroup?.id === group.id) {
+                const updatedGroups = await getCommunities();
+                const current = updatedGroups.data.data.find(g => g.id === group.id);
+                setActiveGroup(current);
+            }
+        } catch (err) { console.error(err); }
     };
 
     const handleSend = async () => {
         if (!text.trim()) return;
-        await sendCommunityMessage(activeGroup.id, text);
-        setText('');
-        loadMessages(activeGroup.id);
+        try {
+            await sendCommunityMessage(activeGroup.id, text);
+            setText('');
+            loadMessages(activeGroup.id);
+        } catch (err) { console.error(err); }
     };
 
     return (
-        <div className="community-wrapper">
-            {/* Sidebar */}
-            <div className="sidebar">
-                <h2 style={{ padding: '0 15px', fontWeight: 800 }}>Komunitas</h2>
-                <div className="group-list">
-                    {groups.map(g => (
-                        <div 
-                            key={g.id} 
-                            onClick={() => openGroup(g)} 
-                            className={`group-item ${activeGroup?.id === g.id ? 'active' : ''}`}
-                        >
-                            <div className="group-info">
-                                <span className="group-name">{g.name}</span>
-                                <span className="member-count">{g.member_count} Anggota</span>
-                            </div>
-                            <button 
-                                className={`btn-join ${g.is_member > 0 ? 'joined' : ''}`}
-                                onClick={(e) => handleJoinLeave(e, g)}
+        <div className="community-wrapper main-content">
+            <div className="community-container card-duo" style={{ padding: 0, display: 'flex', height: '75vh', overflow: 'hidden' }}>
+                {/* Sidebar */}
+                <div className="sidebar" style={{ width: '300px', borderRight: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.3)' }}>
+                    <div style={{ padding: '25px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                        <h2 style={{ fontSize: '1.5rem', fontStyle: 'italic' }}>COMMUNITIES</h2>
+                    </div>
+                    <div className="group-list" style={{ overflowY: 'auto', height: 'calc(100% - 80px)' }}>
+                        {groups.map(g => (
+                            <div 
+                                key={g.id} 
+                                onClick={() => openGroup(g)} 
+                                className={`group-item ${activeGroup?.id === g.id ? 'active' : ''}`}
+                                style={{ 
+                                    padding: '15px 20px', 
+                                    cursor: 'pointer', 
+                                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                    background: activeGroup?.id === g.id ? 'var(--z-gradient)' : 'transparent',
+                                    transition: '0.2s'
+                                }}
                             >
-                                {g.is_member > 0 ? 'Keluar' : 'Gabung'}
-                            </button>
-                        </div>
-                    ))}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontWeight: 800, color: '#fff', fontSize: '0.9rem' }}>{g.name}</span>
+                                        <span style={{ fontSize: '0.7rem', color: activeGroup?.id === g.id ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)', fontWeight: 700 }}>{g.member_count} RIDERS</span>
+                                    </div>
+                                    <button 
+                                        className={`btn-join-mini ${g.is_member > 0 ? 'joined' : ''}`}
+                                        onClick={(e) => handleJoinLeave(e, g)}
+                                        style={{ 
+                                            padding: '8px 16px', 
+                                            borderRadius: '50px', 
+                                            border: 'none', 
+                                            fontSize: '0.75rem', 
+                                            fontWeight: 900, 
+                                            background: g.is_member > 0 ? 'rgba(255,255,255,0.1)' : 'var(--z-gradient)',
+                                            color: '#fff',
+                                            cursor: 'pointer',
+                                            boxShadow: g.is_member > 0 ? 'none' : '0 4px 15px rgba(0, 168, 232, 0.3)',
+                                            transition: '0.2s',
+                                            fontFamily: 'Montserrat'
+                                        }}
+                                    >
+                                        {g.is_member > 0 ? 'LEAVE' : 'JOIN'}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="main-panel">
-                {activeGroup ? (
-                    <>
-                        <div className="panel-header">
-                            <div>
-                                <h3>{activeGroup.name}</h3>
-                                <p>{activeGroup.description}</p>
+                {/* Main Chat Panel */}
+                <div className="main-panel" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', background: 'rgba(15, 23, 42, 0.1)' }}>
+                    {activeGroup ? (
+                        <>
+                            <div className="panel-header" style={{ padding: '20px 30px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(30, 41, 59, 0.4)' }}>
+                                <div>
+                                    <h3 style={{ margin: 0, fontStyle: 'italic', fontSize: '1.4rem', color: 'var(--z-white)' }}>{activeGroup.name}</h3>
+                                    <p style={{ margin: '5px 0 0', color: 'var(--z-blue)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase' }}>{activeGroup.description || 'No description available'}</p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button className={`tab-btn ${viewMode === 'chat' ? 'active' : ''}`} onClick={() => setViewMode('chat')}>
+                                        <MessageSquare size={20} />
+                                    </button>
+                                    <button className={`tab-btn ${viewMode === 'members' ? 'active' : ''}`} onClick={() => { setViewMode('members'); loadMembers(activeGroup.id); }}>
+                                        <Users size={20} />
+                                    </button>
+                                </div>
                             </div>
-                            <div className="header-actions">
-                                <button className={`tab-btn ${viewMode === 'chat' ? 'active' : ''}`} onClick={() => setViewMode('chat')}>
-                                    <MessageSquare size={20} />
-                                </button>
-                                <button className={`tab-btn ${viewMode === 'members' ? 'active' : ''}`} onClick={() => { setViewMode('members'); loadMembers(activeGroup.id); }}>
-                                    <Users size={20} />
-                                </button>
-                            </div>
-                        </div>
 
-                        <div className="panel-content">
-                            {viewMode === 'chat' ? (
-                                <div className="chat-container">
-                                    <div className="message-list">
-                                        {messages.map(m => (
-                                            <div key={m.id} className="message-item">
-                                                <span className="msg-user">{m.username}</span>
-                                                <p className="msg-text">{m.message}</p>
-                                                <span className="msg-date">{new Date(m.created_at).toLocaleTimeString()}</span>
+                            <div className="panel-content" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                                {viewMode === 'chat' ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                        <div className="message-list" style={{ flexGrow: 1, overflowY: 'auto', padding: '25px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                            {messages.map(m => (
+                                                <div key={m.id} className="message-bubble" style={{ alignSelf: 'flex-start', maxWidth: '80%' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                                                        <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--z-purple)', textTransform: 'uppercase' }}>{m.username}</span>
+                                                        <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>{new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                                    </div>
+                                                    <div className="glass" style={{ padding: '12px 18px', borderRadius: '0 20px 20px 20px', border: '1px solid rgba(0, 168, 232, 0.2)' }}>
+                                                        <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 500, color: '#ece8e1' }}>{m.message}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {messages.length === 0 && (
+                                                <div style={{ textAlign: 'center', marginTop: '50px', color: 'var(--text-secondary)' }}>
+                                                    <MessageSquare size={40} opacity={0.2} style={{ marginBottom: '10px' }} />
+                                                    <p style={{ fontWeight: 700, fontSize: '0.9rem' }}>Belum ada pesan. Mulai obrolan!</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {activeGroup.is_member > 0 ? (
+                                            <div style={{ padding: '20px 30px', background: 'rgba(15, 23, 42, 0.5)', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '15px' }}>
+                                                <input 
+                                                    className="input-duo" 
+                                                    style={{ borderRadius: '50px' }}
+                                                    value={text} 
+                                                    onChange={e => setText(e.target.value)} 
+                                                    placeholder="TULIS PESAN UNTUK KOMUNITAS..." 
+                                                    onKeyPress={(e) => e.key === 'Enter' && handleSend()} 
+                                                />
+                                                <button onClick={handleSend} className="btn-duo btn-primary" style={{ width: '50px', height: '50px', padding: 0, minWidth: 'auto' }}>
+                                                    <Send size={20} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div style={{ padding: '20px', textAlign: 'center', background: 'rgba(252, 103, 25, 0.1)', borderTop: '1px solid var(--z-orange)' }}>
+                                                <p style={{ fontWeight: 800, color: 'var(--z-orange)', margin: 0, fontSize: '0.8rem', letterSpacing: '1px' }}>GABUNG KOMUNITAS UNTUK IKUT BERDISKUSI</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div style={{ padding: '30px', overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+                                        {members.map((m, idx) => (
+                                            <div key={idx} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', borderRadius: '15px' }}>
+                                                <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--z-gradient)', padding: '2px' }}>
+                                                    <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#0b0f19', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                        {m.avatar ? <img src={m.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Users size={20} color="var(--z-blue)" />}
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontWeight: 800, color: '#fff' }}>{m.username}</span>
+                                                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--z-blue)', textTransform: 'uppercase' }}>{m.cycling_level || 'REKRUT'}</span>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
-                                    {activeGroup.is_member > 0 ? (
-                                        <div className="input-area">
-                                            <input value={text} onChange={e => setText(e.target.value)} placeholder="Tulis sesuatu..." onKeyPress={(e) => e.key === 'Enter' && handleSend()} />
-                                            <button onClick={handleSend} className="btn-duo btn-primary">Kirim</button>
-                                        </div>
-                                    ) : (
-                                        <div className="join-notice">Gabung grup untuk ikut berdiskusi</div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="member-list">
-                                    {members.map((m, idx) => (
-                                        <div key={idx} className="member-item">
-                                            <div className="member-avatar">
-                                                {m.avatar ? <img src={m.avatar} alt="avatar" /> : <Users size={20} />}
-                                            </div>
-                                            <div className="member-details">
-                                                <span className="member-name">{m.username}</span>
-                                                <span className="member-level">{m.cycling_level}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'var(--text-secondary)' }}>
+                            <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+                                <Hash size={48} opacity={0.3} />
+                            </div>
+                            <p style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '1px' }}>PILIH KOMUNITAS UNTUK DIMULAI</p>
                         </div>
-                    </>
-                ) : (
-                    <div className="empty-panel">
-                        <Info size={48} color="#e5e5e5" />
-                        <p>Pilih komunitas di samping untuk mulai berdiskusi</p>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             <style jsx>{`
-                .community-wrapper { display: flex; height: calc(100vh - 120px); border: 2px solid #e5e5e5; border-radius: 24px; overflow: hidden; background: #fff; }
-                .sidebar { width: 350px; border-right: 2px solid #e5e5e5; display: flex; flex-direction: column; background: #fff; }
-                .group-list { overflow-y: auto; flex-grow: 1; }
-                .group-item { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f7f7f7; cursor: pointer; transition: background 0.2s; }
-                .group-item:hover { background: #f7f7f7; }
-                .group-item.active { background: #e5f5ff; border-left: 4px solid #1cb0f6; }
-                .group-info { display: flex; flex-direction: column; }
-                .group-name { font-weight: 800; color: #3c3c3c; }
-                .member-count { font-size: 0.75rem; color: #afafaf; font-weight: 700; }
-                .btn-join { padding: 6px 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; background: #1cb0f6; color: #fff; }
-                .btn-join.joined { background: #e5e5e5; color: #afafaf; }
-
-                .main-panel { flex-grow: 1; display: flex; flex-direction: column; }
-                .panel-header { padding: 20px; border-bottom: 2px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center; }
-                .panel-header h3 { margin: 0; font-weight: 800; }
-                .panel-header p { margin: 5px 0 0; color: #afafaf; font-size: 0.9rem; }
-                .header-actions { display: flex; gap: 10px; }
-                .tab-btn { background: none; border: none; padding: 10px; border-radius: 12px; cursor: pointer; color: #afafaf; }
-                .tab-btn.active { background: #f7f7f7; color: #1cb0f6; }
-
-                .panel-content { flex-grow: 1; overflow: hidden; }
-                .chat-container { height: 100%; display: flex; flex-direction: column; }
-                .message-list { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-                .message-item { align-self: flex-start; background: #f7f7f7; padding: 12px 16px; border-radius: 0 16px 16px 16px; max-width: 80%; }
-                .msg-user { display: block; font-size: 0.75rem; font-weight: 800; color: #1cb0f6; margin-bottom: 5px; }
-                .msg-text { margin: 0; font-weight: 600; color: #3c3c3c; }
-                .msg-date { display: block; font-size: 0.65rem; color: #afafaf; margin-top: 5px; text-align: right; }
+                .tab-btn { background: none; border: none; padding: 10px; border-radius: 12px; cursor: pointer; color: var(--text-secondary); transition: 0.2s; }
+                .tab-btn.active { background: rgba(0, 168, 232, 0.1); color: var(--z-blue); }
+                .tab-btn:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.05); }
                 
-                .input-area { padding: 20px; border-top: 2px solid #e5e5e5; display: flex; gap: 15px; }
-                .input-area input { flex-grow: 1; padding: 12px; background: #f7f7f7; border: 2px solid #e5e5e5; border-radius: 16px; font-weight: 600; outline: none; }
-                .join-notice { padding: 20px; text-align: center; font-weight: 800; color: #afafaf; background: #f7f7f7; }
-
-                .member-list { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-                .member-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 2px solid #e5e5e5; border-radius: 16px; }
-                .member-avatar { width: 40px; height: 40px; background: #58cc02; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-                .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
-                .member-details { display: flex; flex-direction: column; }
-                .member-name { font-weight: 800; font-size: 0.9rem; }
-                .member-level { font-size: 0.7rem; font-weight: 700; color: #afafaf; text-transform: uppercase; }
-
-                .empty-panel { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #afafaf; font-weight: 800; }
+                .group-item:hover:not(.active) { background: rgba(255,255,255,0.05); }
+                
+                ::-webkit-scrollbar { width: 6px; }
+                ::-webkit-scrollbar-track { background: transparent; }
+                ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
                 @media (max-width: 900px) {
-                    .community-wrapper { flex-direction: column; height: auto; min-height: 80vh; }
-                    .sidebar { width: 100%; height: 300px; }
+                    .community-container { flex-direction: column !important; height: auto !important; min-height: 80vh; }
+                    .sidebar { width: 100% !important; height: 300px !important; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.1); }
                 }
             `}</style>
         </div>

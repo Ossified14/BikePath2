@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Profile_model extends CI_Model {
     public function get_profile($user_id) {
-        $this->db->select('up.*, u.username, u.email');
+        $this->db->select('up.*, u.username, u.email, u.created_at as joined_date');
         $this->db->from('user_profiles up');
         $this->db->join('users u', 'u.id = up.user_id');
         $this->db->where('up.user_id', $user_id);
@@ -13,6 +13,18 @@ class Profile_model extends CI_Model {
             $this->db->insert('user_profiles', ['user_id' => $user_id]);
             return $this->get_profile($user_id);
         }
+
+        // Hitung statistik
+        $profile->total_activities = $this->db->where('user_id', $user_id)->count_all_results('activities');
+        
+        $this->db->select_sum('distance');
+        $this->db->where('user_id', $user_id);
+        $query = $this->db->get('activities')->row();
+        $profile->total_distance = (float)($query->distance ?? 0);
+
+        $profile->total_friends = $this->db->where('user_id', $user_id)->count_all_results('friendships');
+        $profile->total_communities = $this->db->where('user_id', $user_id)->count_all_results('community_members');
+
         return $profile;
     }
 

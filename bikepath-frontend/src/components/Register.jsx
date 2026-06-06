@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { register } from '../services/authService';
 import { useNavigate, Link } from 'react-router-dom';
+import { Bike, User, Mail, Lock } from 'lucide-react';
 
 const Register = () => {
     const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -18,48 +19,103 @@ const Register = () => {
         try {
             await register(formData);
             setStatus({ loading: false, error: '', success: true });
-            setTimeout(() => navigate('/'), 2000); // Redirect to login after 2 seconds
+            setTimeout(() => navigate('/'), 2000);
         } catch (err) {
-            const msg = err.response?.data?.message || 'Registrasi gagal, periksa data Anda.';
+            const msg = err.response?.data?.message || 'Registration failed. Check your data.';
             setStatus({ loading: false, error: msg, success: false });
         }
     };
 
-    const styles = {
-        container: { maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' },
-        title: { textAlign: 'center', color: '#333', marginBottom: '20px' },
-        formGroup: { marginBottom: '15px' },
-        label: { display: 'block', marginBottom: '5px', fontWeight: 'bold' },
-        input: { width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' },
-        button: { width: '100%', padding: '12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px' },
-        error: { color: '#dc2626', marginTop: '10px', textAlign: 'center' },
-        success: { color: '#16a34a', marginTop: '10px', textAlign: 'center' },
-        link: { display: 'block', marginTop: '15px', textAlign: 'center', color: '#2563eb', textDecoration: 'none' }
-    };
-
     return (
-        <div style={styles.container}>
-            <form onSubmit={handleSubmit}>
-                <h2 style={styles.title}>Daftar Bikepath</h2>
-                <div style={styles.formGroup}>
-                    <label style={styles.label}>Username</label>
-                    <input type="text" name="username" value={formData.username} onChange={handleChange} required style={styles.input} />
+        <div className="auth-wrapper" style={{ maxWidth: '450px', margin: '40px auto', padding: '0 20px' }}>
+            <div className="card-duo glass" style={{ padding: '50px 40px', textAlign: 'center', borderTop: '4px solid var(--z-purple)' }}>
+                <div style={{ marginBottom: '35px' }}>
+                    <div className="logo-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
+                        <div style={{ background: 'var(--z-gradient)', padding: '12px', borderRadius: '18px' }}>
+                            <Bike size={38} color="#fff" />
+                        </div>
+                        <h1 style={{ fontSize: '2.4rem', margin: 0, fontStyle: 'italic', letterSpacing: '-1px' }}>
+                            BIKE<span style={{ color: 'var(--z-blue)' }}>PATH</span>
+                        </h1>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontWeight: '700', fontSize: '0.9rem', letterSpacing: '1px' }}>JOIN THE NETWORK</p>
                 </div>
-                <div style={styles.formGroup}>
-                    <label style={styles.label}>Email</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} required style={styles.input} />
+
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div className="input-with-icon">
+                        <User className="field-icon" size={18} color="var(--z-blue)" />
+                        <input 
+                            className="input-duo"
+                            style={{ paddingLeft: '50px', borderRadius: '50px' }}
+                            type="text" 
+                            name="username" 
+                            placeholder="RIDER USERNAME"
+                            value={formData.username} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                    </div>
+                    <div className="input-with-icon">
+                        <Mail className="field-icon" size={18} color="var(--z-purple)" />
+                        <input 
+                            className="input-duo"
+                            style={{ paddingLeft: '50px', borderRadius: '50px' }}
+                            type="email" 
+                            name="email" 
+                            placeholder="EMAIL ADDRESS"
+                            value={formData.email} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                    </div>
+                    <div className="input-with-icon">
+                        <Lock className="field-icon" size={18} color="var(--z-orange)" />
+                        <input 
+                            className="input-duo"
+                            style={{ paddingLeft: '50px', borderRadius: '50px' }}
+                            type="password" 
+                            name="password" 
+                            placeholder="PASSWORD"
+                            value={formData.password} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                    </div>
+                    
+                    <button type="submit" className="btn-duo btn-primary" disabled={status.loading} style={{ marginTop: '10px', width: '100%', fontSize: '1.2rem' }}>
+                        {status.loading ? 'ENROLLING...' : 'ENROLL NOW'}
+                    </button>
+                </form>
+
+                {status.error && (
+                    <div className="animate-slide-in" style={{ marginTop: '20px', padding: '12px', background: 'rgba(255, 75, 75, 0.1)', color: '#ff4b4b', borderRadius: '12px', fontWeight: '800', border: '1px solid rgba(255, 75, 75, 0.3)', fontSize: '0.8rem' }}>
+                        {status.error}
+                    </div>
+                )}
+
+                {status.success && (
+                    <div className="animate-slide-in" style={{ marginTop: '20px', padding: '15px', background: 'rgba(0, 168, 232, 0.1)', color: 'var(--z-blue)', borderRadius: '12px', fontWeight: '800', border: '1px solid var(--z-blue)', fontSize: '0.9rem' }}>
+                        ENROLLMENT SUCCESSFUL! REDIRECTING...
+                    </div>
+                )}
+
+                <div style={{ marginTop: '40px', paddingTop: '25px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <p style={{ fontWeight: '700', color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '15px' }}>ALREADY A MEMBER?</p>
+                    <Link to="/" className="btn-duo btn-outline" style={{ width: '100%', textDecoration: 'none', padding: '12px' }}>
+                        SIGN IN
+                    </Link>
                 </div>
-                <div style={styles.formGroup}>
-                    <label style={styles.label}>Password</label>
-                    <input type="password" name="password" value={formData.password} onChange={handleChange} required style={styles.input} />
-                </div>
-                <button type="submit" disabled={status.loading} style={{...styles.button, opacity: status.loading ? 0.7 : 1}}>
-                    {status.loading ? 'Mendaftar...' : 'Daftar Sekarang'}
-                </button>
-                {status.error && <p style={styles.error}>{status.error}</p>}
-                {status.success && <p style={styles.success}>Registrasi Berhasil! Mengalihkan ke Login...</p>}
-            </form>
-            <Link to="/" style={styles.link}>Sudah punya akun? Login di sini</Link>
+            </div>
+
+            <style jsx>{`
+                .input-with-icon { position: relative; width: 100%; }
+                .field-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); z-index: 10; }
+                .logo-container h1 span {
+                    background: var(--z-gradient);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+            `}</style>
         </div>
     );
 };

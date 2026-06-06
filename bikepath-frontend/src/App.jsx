@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom'
-import { Menu, X, Bike, User, Users } from 'lucide-react'
+import { Menu, X, Bike, User } from 'lucide-react'
 import './App.css'
 import Login from './components/Login'
 import Register from './components/Register'
@@ -14,10 +14,8 @@ import { getProfile } from './services/bikepathService'
 function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [userData, setUserData] = useState(null);
-  const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
-  // Load user data dynamically to keep avatar in sync
   useEffect(() => {
     if (token) {
       loadNavbarData();
@@ -31,7 +29,6 @@ function Navigation() {
         setUserData(res.data.data);
       }
     } catch (err) {
-      // If profile fails, try reading from local storage as fallback
       const savedUser = localStorage.getItem('user');
       if (savedUser) setUserData(JSON.parse(savedUser));
     }
@@ -43,14 +40,14 @@ function Navigation() {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-logo" onClick={closeMenu}>
-          <Bike size={28} />
-          <span>Bikepath</span>
+        <Link to="/map" className="nav-logo" onClick={closeMenu}>
+          <Bike size={32} color="var(--z-blue)" />
+          <span>BIKE<span>PATH</span></span>
         </Link>
 
-        {/* Hamburger Icon for Mobile */}
+        {/* Hamburger Icon - Only for Mobile via CSS */}
         <div className="menu-icon" onClick={toggleMenu}>
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={32} /> : <Menu size={32} />}
         </div>
 
         {/* Nav Menu */}
@@ -58,31 +55,27 @@ function Navigation() {
           {!token ? (
             <>
               <li className="nav-item">
-                <Link to="/" className="nav-links" onClick={closeMenu}>Login</Link>
+                <Link to="/" className="nav-links" onClick={closeMenu}>LOGIN</Link>
               </li>
               <li className="nav-item">
-                <Link to="/register" className="nav-links" onClick={closeMenu}>Daftar</Link>
+                <Link to="/register" className="nav-links" onClick={closeMenu}>SIGN UP</Link>
               </li>
             </>
           ) : (
             <>
               <li className="nav-item">
-                <Link to="/map" className="nav-links" onClick={closeMenu}>Peta</Link>
+                <Link to="/map" className="nav-links" onClick={closeMenu}>MAP</Link>
               </li>
               <li className="nav-item">
-                <Link to="/activity" className="nav-links" onClick={closeMenu}>Aktivitas</Link>
+                <Link to="/activity" className="nav-links" onClick={closeMenu}>ACTIVITY</Link>
               </li>
               <li className="nav-item">
-                <Link to="/community" className="nav-links" onClick={closeMenu}>Komunitas</Link>
+                <Link to="/community" className="nav-links" onClick={closeMenu}>COMMUNITY</Link>
               </li>
               <li className="nav-item">
-                <Link to="/friends" className="nav-links" onClick={closeMenu}>
-                  <Users size={20} />
-                  <span>Teman</span>
-                </Link>
+                <Link to="/friends" className="nav-links" onClick={closeMenu}>FRIENDS</Link>
               </li>
 
-              {/* Profile with dynamic Avatar */}
               <li className="nav-item">
                 <Link to="/profile" className="nav-links profile-trigger" onClick={closeMenu}>
                   <div className="profile-avatar">

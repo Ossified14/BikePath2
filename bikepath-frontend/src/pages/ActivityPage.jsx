@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Bike, Clock, Flame, StickyNote, Calendar, Map as MapIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, Bike, Clock, Flame, StickyNote, Calendar, Map as MapIcon, Zap, Target, Timer } from 'lucide-react';
 import { getActivities } from '../services/bikepathService';
 
 const ActivityPage = () => {
@@ -11,8 +11,10 @@ const ActivityPage = () => {
     }, []);
 
     const fetchData = async () => {
-        const res = await getActivities();
-        setActivities(res.data.data);
+        try {
+            const res = await getActivities();
+            if (res.data.status) setActivities(res.data.data);
+        } catch (err) { console.error(err); }
     };
 
     const toggleExpand = (id) => {
@@ -26,120 +28,302 @@ const ActivityPage = () => {
     }, { totalDistance: 0, totalDuration: 0 });
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '30px', fontWeight: 800 }}>Dashboard Aktivitas</h1>
+        <div className="activity-container main-content" style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '40px' }}>
+                <Target size={40} color="var(--z-blue)" />
+                <h1 style={{ fontSize: '3rem', margin: 0 }}>ACTIVITY HUB</h1>
+            </div>
 
-            {/* Stats Overview */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginBottom: '40px' }}>
-                <div className="card-duo" style={{ textAlign: 'center', padding: '20px' }}>
-                    <div style={{ background: '#e5f6ff', width: '50px', height: '50px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 10px', justifyContent: 'center' }}>
-                        <Bike color="#1cb0f6" />
+            {/* Stats Overview - Horizontal Scroll */}
+            <div className="stats-scroll-container">
+                <div className="stats-row">
+                    <div className="card-duo glass stats-card">
+                        <div className="stats-header">
+                            <Zap size={24} color="var(--z-orange)" fill="var(--z-orange)" />
+                            <span>TOTAL RIDES</span>
+                        </div>
+                        <h2>{activities.length}</h2>
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#aaa' }}>TOTAL AKTIVITAS</p>
-                    <h2 style={{ margin: 0, fontWeight: 800 }}>{activities.length}</h2>
-                </div>
-                <div className="card-duo" style={{ textAlign: 'center', padding: '20px' }}>
-                    <div style={{ background: '#f7f7f7', width: '50px', height: '50px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 10px', justifyContent: 'center' }}>
-                        <MapIcon color="#777" />
+                    <div className="card-duo glass stats-card">
+                        <div className="stats-header">
+                            <MapIcon size={24} color="var(--z-blue)" fill="var(--z-blue)" />
+                            <span>DISTANCE (KM)</span>
+                        </div>
+                        <h2>{stats.totalDistance.toFixed(1)}</h2>
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#aaa' }}>JARAK (KM)</p>
-                    <h2 style={{ margin: 0, fontWeight: 800 }}>{stats.totalDistance.toFixed(1)}</h2>
-                </div>
-                <div className="card-duo" style={{ textAlign: 'center', padding: '20px' }}>
-                    <div style={{ background: '#fff4e5', width: '50px', height: '50px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 10px', justifyContent: 'center' }}>
-                        <Clock color="#ff9600" />
+                    <div className="card-duo glass stats-card">
+                        <div className="stats-header">
+                            <Timer size={24} color="var(--z-purple)" fill="var(--z-purple)" />
+                            <span>TOTAL TIME</span>
+                        </div>
+                        <h2>{Math.floor(stats.totalDuration)}<span style={{ fontSize: '1rem', marginLeft: '5px' }}>MIN</span></h2>
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#aaa' }}>WAKTU (MENIT)</p>
-                    <h2 style={{ margin: 0, fontWeight: 800 }}>{Math.floor(stats.totalDuration)}</h2>
                 </div>
             </div>
 
-            <h2 style={{ marginBottom: '20px', fontWeight: 800, fontSize: '1.4rem' }}>Riwayat Aktifitas Terbaru</h2>
+            <div style={{ borderLeft: '4px solid var(--z-gradient)', paddingLeft: '15px', marginBottom: '25px' }}>
+                <h2 style={{ fontSize: '1.6rem', fontStyle: 'italic', margin: 0 }}>RECENT HISTORY</h2>
+            </div>
             
-            {activities.length > 0 ? (
-                activities.map((act) => (
-                    <div key={act.id} className="card-duo" style={{ marginBottom: '15px', padding: 0, overflow: 'hidden' }}>
-                        {/* Header - Clickable */}
-                        <div 
-                            onClick={() => toggleExpand(act.id)}
-                            style={{ 
-                                padding: '20px', 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
-                                alignItems: 'center',
-                                cursor: 'pointer',
-                                background: expandedId === act.id ? '#f7f7f7' : '#fff'
-                            }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <div style={{ background: '#58cc02', padding: '10px', borderRadius: '12px' }}>
-                                    <Bike color="#fff" size={24} />
+            <div className="activity-list">
+                {activities.length > 0 ? (
+                    activities.map((act) => (
+                        <div key={act.id} className={`activity-card glass ${expandedId === act.id ? 'expanded' : ''}`}>
+                            {/* Header - Clickable */}
+                            <div 
+                                onClick={() => toggleExpand(act.id)}
+                                className="activity-header"
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                                    <div className="activity-icon-box">
+                                        <Bike color="white" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="activity-title">
+                                            {act.name || 'UNNAMED RIDE'}
+                                        </h3>
+                                        <div className="activity-date-box">
+                                            <Calendar size={14} />
+                                            <span>{new Date(act.activity_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
-                                        {act.name || 'Gowes Tanpa Nama'}
-                                    </h3>
-                                    <span style={{ color: '#afafaf', fontWeight: 700, fontSize: '0.85rem' }}>
-                                        <Calendar size={14} style={{ marginRight: '5px' }} />
-                                        {new Date(act.activity_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                    </span>
+                                <div className="activity-main-stats">
+                                    <div className="mini-stat">
+                                        <span className="val">{(act.distance || 0)}</span>
+                                        <span className="unit">KM</span>
+                                    </div>
+                                    {expandedId === act.id ? <ChevronUp size={24} color="var(--z-blue)" /> : <ChevronDown size={24} color="var(--text-secondary)" />}
                                 </div>
                             </div>
-                            {expandedId === act.id ? <ChevronUp color="#afafaf" /> : <ChevronDown color="#afafaf" />}
-                        </div>
 
-                        {/* Expandable Content */}
-                        {expandedId === act.id && (
-                            <div style={{ padding: '20px', borderTop: '2px solid #e5e5e5', background: '#fff' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                    <div className="stat-item">
-                                        <MapIcon size={18} color="#58cc02" />
-                                        <div>
-                                            <p className="stat-label">JARAK</p>
-                                            <p className="stat-value">{(act.distance || 0)} km</p>
+                            {/* Expandable Content */}
+                            {expandedId === act.id && (
+                                <div className="activity-detail-content">
+                                    <div className="detail-grid">
+                                        <div className="detail-item">
+                                            <div className="d-icon" style={{ color: 'var(--z-blue)' }}><MapIcon size={20} /></div>
+                                            <div className="d-text">
+                                                <p className="d-label">DISTANCE</p>
+                                                <p className="d-value">{(act.distance || 0)} KM</p>
+                                            </div>
+                                        </div>
+                                        <div className="detail-item">
+                                            <div className="d-icon" style={{ color: 'var(--z-purple)' }}><Clock size={20} /></div>
+                                            <div className="d-text">
+                                                <p className="d-label">DURATION</p>
+                                                <p className="d-value">{Math.floor(act.duration || 0)} MIN</p>
+                                            </div>
+                                        </div>
+                                        <div className="detail-item">
+                                            <div className="d-icon" style={{ color: 'var(--z-orange)' }}><Flame size={20} /></div>
+                                            <div className="d-text">
+                                                <p className="d-label">CALORIES</p>
+                                                <p className="d-value">{act.calories || 0} KCAL</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="stat-item">
-                                        <Clock size={18} color="#1cb0f6" />
-                                        <div>
-                                            <p className="stat-label">DURASI</p>
-                                            <p className="stat-value">{Math.floor(act.duration || 0)} Menit</p>
+                                    
+                                    {act.notes && act.notes.trim() !== "" && (
+                                        <div className="activity-notes">
+                                            <p className="notes-label">
+                                                <StickyNote size={16} /> RIDER NOTES
+                                            </p>
+                                            <p className="notes-text">
+                                                {act.notes}
+                                            </p>
                                         </div>
-                                    </div>
-                                    <div className="stat-item">
-                                        <Flame size={18} color="#ff4b4b" />
-                                        <div>
-                                            <p className="stat-label">KALORI</p>
-                                            <p className="stat-value">{act.calories || 0} kcal</p>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
-                                
-                                {/* Only show notes if they are not empty */}
-                                {act.notes && act.notes.trim() !== "" && (
-                                    <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '2px solid #f0f0f0' }}>
-                                        <p style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#afafaf', fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                                            <StickyNote size={16} /> Catatan
-                                        </p>
-                                        <p style={{ marginTop: '5px', color: '#3c3c3c', lineHeight: 1.5 }}>
-                                            {act.notes}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <div className="card-duo glass" style={{ textAlign: 'center', padding: '60px' }}>
+                        <p style={{ color: 'var(--text-secondary)', fontWeight: 800, fontSize: '1rem', letterSpacing: '1px' }}>NO RECENT ACTIVITIES RECORDED.</p>
+                        <button className="btn-duo btn-primary" style={{ marginTop: '20px' }} onClick={() => window.location.href='/map'}>START A RIDE</button>
                     </div>
-                ))
-            ) : (
-                <div style={{ textAlign: 'center', padding: '50px' }}>
-                    <p style={{ color: '#afafaf', fontWeight: 700 }}>Belum ada aktivitas yang direkam.</p>
-                </div>
-            )}
+                )}
+            </div>
 
             <style jsx>{`
-                .stat-item { display: flex; align-items: center; gap: 12px; }
-                .stat-label { margin: 0; font-size: 0.7rem; font-weight: 800; color: #afafaf; text-transform: uppercase; }
-                .stat-value { margin: 0; font-size: 1rem; font-weight: 800; color: #3c3c3c; }
+                .stats-card {
+                    padding: 25px;
+                    border-bottom: 3px solid transparent;
+                    transition: 0.3s;
+                }
+                .stats-card:hover {
+                    border-bottom-color: var(--z-blue);
+                    transform: translateY(-5px);
+                }
+                .stats-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 10px;
+                }
+                .stats-header span {
+                    font-family: 'Montserrat', sans-serif;
+                    font-weight: 800;
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    letter-spacing: 1px;
+                }
+                .stats-card h2 {
+                    font-size: 2.8rem;
+                    margin: 0;
+                    color: var(--z-white);
+                }
+
+                .activity-card {
+                    margin-bottom: 20px;
+                    border-radius: 20px;
+                    overflow: hidden;
+                    border: 1px solid rgba(255,255,255,0.05);
+                }
+                .activity-header {
+                    padding: 20px 25px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    cursor: pointer;
+                    transition: 0.2s;
+                }
+                .activity-header:hover {
+                    background: rgba(255,255,255,0.03);
+                }
+                .activity-icon-box {
+                    background: var(--z-gradient);
+                    padding: 12px;
+                    border-radius: 15px;
+                    box-shadow: 0 4px 15px rgba(0, 168, 232, 0.3);
+                }
+                .activity-title {
+                    margin: 0;
+                    font-size: 1.3rem;
+                    font-style: italic;
+                    color: var(--z-white);
+                }
+                .activity-date-box {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    color: var(--text-secondary);
+                    font-weight: 700;
+                    font-size: 0.85rem;
+                    margin-top: 4px;
+                }
+                .activity-main-stats {
+                    display: flex;
+                    align-items: center;
+                    gap: 25px;
+                }
+                .mini-stat {
+                    display: flex;
+                    align-items: baseline;
+                    gap: 4px;
+                }
+                .mini-stat .val {
+                    font-family: 'Montserrat', sans-serif;
+                    font-weight: 900;
+                    font-style: italic;
+                    font-size: 1.8rem;
+                    color: var(--z-white);
+                }
+                .mini-stat .unit {
+                    font-weight: 800;
+                    font-size: 0.8rem;
+                    color: var(--z-blue);
+                }
+
+                .activity-detail-content {
+                    padding: 25px;
+                    background: rgba(15, 23, 42, 0.3);
+                    border-top: 1px solid rgba(255,255,255,0.05);
+                }
+                .detail-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    gap: 25px;
+                }
+                .detail-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                }
+                .d-icon {
+                    background: rgba(255,255,255,0.05);
+                    padding: 10px;
+                    border-radius: 12px;
+                }
+                .d-label {
+                    margin: 0;
+                    font-family: 'Montserrat', sans-serif;
+                    font-size: 0.7rem;
+                    font-weight: 800;
+                    color: var(--text-secondary);
+                    letter-spacing: 1px;
+                }
+                .d-value {
+                    margin: 0;
+                    font-size: 1.1rem;
+                    font-weight: 800;
+                    color: var(--z-white);
+                }
+                .activity-notes {
+                    margin-top: 25px;
+                    padding-top: 20px;
+                    border-top: 1px solid rgba(255,255,255,0.05);
+                }
+                .notes-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-family: 'Montserrat', sans-serif;
+                    font-weight: 800;
+                    color: var(--z-blue);
+                    font-size: 0.8rem;
+                    margin-bottom: 10px;
+                }
+                .notes-text {
+                    color: rgba(236, 232, 225, 0.8);
+                    line-height: 1.6;
+                    font-weight: 500;
+                    margin: 0;
+                }
+
+                @media (max-width: 600px) {
+                    .activity-main-stats .mini-stat { display: none; }
+                }
+
+                /* Stats Horizontal Scroll */
+                .stats-scroll-container {
+                    width: 100%;
+                    overflow-x: auto;
+                    padding-bottom: 15px;
+                    margin-bottom: 35px;
+                    scrollbar-width: none; /* Firefox */
+                    -ms-overflow-style: none;  /* IE and Edge */
+                }
+                .stats-scroll-container::-webkit-scrollbar {
+                    display: none; /* Chrome, Safari, Opera */
+                }
+                .stats-row {
+                    display: flex;
+                    gap: 20px;
+                    flex-wrap: nowrap;
+                    min-width: min-content;
+                }
+                .stats-card {
+                    flex: 0 0 280px;
+                    margin-bottom: 0 !important;
+                }
+
+                @media (max-width: 600px) {
+                    .stats-card {
+                        flex: 0 0 240px;
+                    }
+                }
             `}</style>
         </div>
     );

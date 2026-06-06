@@ -10,12 +10,22 @@ class Community_model extends CI_Model {
     }
 
     public function get_members($community_id) {
-        $this->db->select('users.username, user_profiles.avatar, user_profiles.cycling_level');
+        $this->db->select('users.username, up.avatar, up.cycling_level');
         $this->db->from('community_members');
         $this->db->join('users', 'users.id = community_members.user_id');
-        $this->db->join('user_profiles', 'user_profiles.user_id = users.id', 'left');
+        $this->db->join('user_profiles up', 'up.user_id = users.id', 'left');
         $this->db->where('community_id', $community_id);
-        return $this->db->get()->result();
+        $members = $this->db->get()->result();
+
+        foreach ($members as $m) {
+            if ($m->avatar) {
+                if (!filter_var($m->avatar, FILTER_VALIDATE_URL)) {
+                    $m->avatar = base_url('uploads/profiles/' . $m->avatar);
+                }
+            }
+        }
+
+        return $members;
     }
 
     public function join_group($community_id, $user_id) {

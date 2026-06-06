@@ -22,10 +22,20 @@ class Auth_model extends CI_Model {
     }
 
     public function get_all_users($exclude_user_id) {
-        $this->db->select('users.id, users.username, user_profiles.avatar');
+        $this->db->select('users.id, users.username, up.avatar, up.cycling_level');
         $this->db->from('users');
-        $this->db->join('user_profiles', 'user_profiles.user_id = users.id', 'left');
+        $this->db->join('user_profiles up', 'up.user_id = users.id', 'left');
         $this->db->where('users.id !=', $exclude_user_id);
-        return $this->db->get()->result();
+        $users = $this->db->get()->result();
+
+        foreach ($users as $u) {
+            if ($u->avatar) {
+                if (!filter_var($u->avatar, FILTER_VALIDATE_URL)) {
+                    $u->avatar = base_url('uploads/profiles/' . $u->avatar);
+                }
+            }
+        }
+
+        return $users;
     }
 }
